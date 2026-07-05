@@ -1,0 +1,1 @@
+"""ExecMind AI application package."""
