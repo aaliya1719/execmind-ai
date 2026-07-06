@@ -195,19 +195,24 @@ ExecMind-AI/
 
 ### Dashboard
 
-*(Insert dashboard screenshot here)*
+![Dashboard](image.png)
 
 ### Executive Summary
-
-*(Insert executive summary screenshot here)*
+  
+![Executive Summary 1](image-1.png)  
+![Execution Summary 2](image-2.png)
 
 ### Marketing Recommendations
 
-*(Insert marketing recommendations screenshot here)*
+![Marketing](image-3.png)
 
 ### Financial Assessment
 
-*(Insert financial assessment screenshot here)*
+![Finance](image-4.png)
+
+### Sales Insights
+   
+![Sales](image-5.png)
 
 ## Future Improvements
 
@@ -226,7 +231,7 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 **Aaliya**  
 B.Tech Engineering Student
 
-GitHub: https://github.com/aaliya1719
+GitHub: https://github.com/aaliya1719  
 Kaggle: https://www.kaggle.com/aster1719
 
 ## Acknowledgements
