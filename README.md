@@ -1,35 +1,48 @@
 # ExecMind AI
 
-ExecMind AI is an autonomous multi-agent business intelligence platform for small businesses.
+### An Autonomous Multi-Agent Business Strategy Assistant for Small Businesses
+
+Transform raw sales data into actionable business strategies using an autonomous team of AI agents. ExecMind AI analyzes uploaded business datasets, generates executive insights, identifies risks, recommends marketing and financial strategies, and produces downloadable business reports—all through an intelligent multi-agent workflow.
+
+## 🚀 Live Demo
+
+| Resource | Link |
+|----------|------|
+| 🌐 Streamlit App | https://execmind.streamlit.app/#exec-mind-ai |
+| 📂 GitHub Repository | https://github.com/aaliya1719/execmind-ai |
+| 🎥 Demo Video | https://youtu.be/your-video |
+
 
 ## Overview
 
-This project scaffolds a modular Python application that will eventually:
-- ingest sales data from CSV or Excel files,
-- coordinate specialized AI agents for sales, marketing, and finance analysis,
-- produce executive-style business insights and recommendations,
-- expose a Streamlit-based user interface.
+Small businesses generate large amounts of sales data, but many lack access to dedicated business analysts or expensive business intelligence platforms. While traditional dashboards present charts and metrics, they rarely explain *why* something happened or *what should happen next*.
 
-## Architecture
+ExecMind AI approaches this problem differently. Instead of acting as another analytics dashboard, it functions as an autonomous AI consulting team. After a business dataset is uploaded, specialized AI agents independently analyze sales performance, marketing opportunities, financial health, and operational risks. A manager agent then combines these findings into a single executive report containing practical recommendations that business owners can immediately act upon.
 
-- app/agents/: specialized AI agents
-- app/mcp/: MCP-facing tools for files and reports
-- app/ui/: Streamlit front-end
-- app/utils/: configuration, file handling, and logging helpers
+The result is a decision-support system that transforms raw business data into clear, actionable strategy rather than simply displaying statistics.
 
-## Getting Started
 
-1. Create a virtual environment.
-2. Install dependencies with `pip install -r requirements.txt`.
-3. Copy `.env.example` to `.env` and populate secrets.
-4. Start the Streamlit app with `streamlit run app/ui/streamlit_app.py`.
+## Problem Statement
 
-## Security Notes
+Many small businesses rely on spreadsheets to monitor sales performance, yet interpreting this data often requires business expertise that may not be readily available.
 
-- Keep secrets in environment variables.
-- Do not commit `.env` files.
-- Validate uploaded files before processing.
+Existing analytics tools primarily answer questions such as:
+- What happened?
+- How much was sold?
+- Which products performed well?
 
-## Roadmap
+However, they rarely answer higher-level business questions like:
+- Why are sales declining?
+- Which products should be promoted?
+- Which markets should receive more attention?
+- What business risks should be addressed first?
 
-See [TODO.md](TODO.md) for the next implementation milestones.
+Business owners need actionable recommendations rather than isolated metrics.
+
+## Solution
+
+ExecMind AI uses a multi-agent architecture in which each AI agent focuses on a specialized business domain.
+The Sales Agent analyzes revenue trends and product performance.
+The Marketing Agent identifies promotional opportunities, cross-selling strategies, and market expansion possibilities.
+The Finance Agent evaluates financial KPIs, forecasts revenue, and detects business risks.
+Finally, the Manager Agent consolidates every agent's findings into a comprehensive executive report containing prioritized recommendations and downloadable outputs.
