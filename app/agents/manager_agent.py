@@ -13,6 +13,138 @@ from app.agents.marketing_agent import recommend_marketing
 from app.agents.finance_agent import estimate_financial_impact
 
 
+def _clamp_score(score: float) -> int:
+    """Clamp a raw score into the inclusive 0-100 range."""
+    return max(0, min(100, int(round(score))))
+
+
+def _severity_penalty(severity: str) -> int:
+    """Map a severity label to a score penalty."""
+    severity_value = str(severity).lower()
+    if severity_value == "high":
+        return 12
+    if severity_value == "medium":
+        return 6
+    if severity_value == "low":
+        return 2
+    return 0
+
+
+def _domain_risk_penalty(risks: List[Dict[str, Any]]) -> int:
+    """Compute the penalty from a list of risk dictionaries."""
+    return sum(_severity_penalty(risk.get("severity", "")) for risk in risks)
+
+
+def _calculate_business_health_score(
+    revenue_status: str,
+    sales_insights: Dict[str, Any],
+    marketing_insights: Dict[str, Any],
+    finance_insights: Dict[str, Any],
+    overall_risks: List[Dict[str, Any]],
+) -> int:
+    """Convert core business KPIs into a 0-100 executive health score.
+
+    The score blends four domains already present in the report:
+    financial trend/volatility, sales concentration, marketing risks/opportunities,
+    and the consolidated risk register. Each domain is normalized to a 0-100
+    score and then combined with fixed weights.
+    """
+
+    financial_kpis = finance_insights.get("financial_kpis", {})
+    finance_risks = finance_insights.get("financial_risks", [])
+    marketing_risks = marketing_insights.get("marketing_risks", [])
+    promotional_signals = marketing_insights.get("suggested_promotions", [])
+    cross_sell_signals = marketing_insights.get("cross_sell_opportunities", [])
+    market_expansion_signals = marketing_insights.get("market_expansion_opportunities", [])
+
+    # Financial score: trend plus volatility, then penalize detected financial risks.
+    financial_score = 82.0
+    if revenue_status == "Growing":
+        financial_score += 10
+    elif revenue_status == "Stable":
+        financial_score += 2
+    else:
+        financial_score -= 14
+
+    volatility = float(financial_kpis.get("monthly_revenue_volatility_pct", 0.0) or 0.0)
+    if volatility > 60:
+        financial_score -= 18
+    elif volatility > 35:
+        financial_score -= 10
+    elif volatility > 15:
+        financial_score -= 4
+
+    financial_score -= _domain_risk_penalty(finance_risks)
+    if not finance_risks:
+        financial_score += 4
+
+    # Sales score: reward diversified revenue and penalize concentration.
+    total_sales = float(sales_insights.get("total_sales", 0.0) or 0.0)
+    sales_score = 78.0 if total_sales > 0 else 0.0
+    if total_sales > 0:
+        top_products = sales_insights.get("top_products_by_revenue", {})
+        if top_products:
+            top_product_revenue = float(list(top_products.values())[0] or 0.0)
+            top_product_share = top_product_revenue / total_sales * 100
+            if top_product_share > 50:
+                sales_score -= 20
+            elif top_product_share > 30:
+                sales_score -= 12
+            elif top_product_share > 20:
+                sales_score -= 5
+            else:
+                sales_score += 4
+
+        top_countries = sales_insights.get("top_countries_by_revenue", {})
+        if top_countries:
+            top_country_revenue = float(list(top_countries.values())[0] or 0.0)
+            top_country_share = top_country_revenue / total_sales * 100
+            if top_country_share > 70:
+                sales_score -= 18
+            elif top_country_share > 50:
+                sales_score -= 10
+            elif top_country_share > 35:
+                sales_score -= 4
+            else:
+                sales_score += 3
+
+        if total_sales >= 10000:
+            sales_score += 4
+
+    # Marketing score: reflect existing promotion, cross-sell, and expansion signals
+    # while still penalizing visible marketing risks.
+    marketing_score = 80.0
+    marketing_score -= _domain_risk_penalty(marketing_risks)
+    marketing_score += min(6, len(promotional_signals) * 2)
+    marketing_score += min(4, len(cross_sell_signals) * 2)
+    marketing_score += min(3, len(market_expansion_signals))
+    if not marketing_risks:
+        marketing_score += 4
+
+    # Consolidated risk score: uses the final risk register to capture the overall
+    # business exposure after the specialist analyses are merged.
+    risk_score = 92.0
+    for risk in overall_risks:
+        risk_score -= _severity_penalty(risk.get("severity", ""))
+    if len(overall_risks) >= 4:
+        risk_score -= 6
+    elif len(overall_risks) == 3:
+        risk_score -= 3
+    elif len(overall_risks) == 2:
+        risk_score -= 1
+    if overall_risks and overall_risks[0].get("risk_type") == "No Critical Risks Detected":
+        risk_score += 3
+
+    weighted_score = (
+        financial_score * 0.35
+        + sales_score * 0.30
+        + marketing_score * 0.20
+        + risk_score * 0.15
+    )
+
+    return _clamp_score(weighted_score)
+
+
 def build_report(data: pd.DataFrame, *args, **kwargs) -> Dict[str, Any]:
     """Coordinatively execute Sales, Marketing, and Finance analyses.
 
@@ -85,6 +217,13 @@ def build_report(data: pd.DataFrame, *args, **kwargs) -> Dict[str, Any]:
     revenue_status = finance_insights.get("revenue_health", {}).get("status", "Stable")
     high_risks = [r for r in overall_risks if r.get("severity") == "High"]
     medium_risks = [r for r in overall_risks if r.get("severity") == "Medium"]
+    business_health_score = _calculate_business_health_score(
+        revenue_status,
+        sales_insights,
+        marketing_insights,
+        finance_insights,
+        overall_risks,
+    )
 
     if (len(high_risks) >= 1 and revenue_status == "Declining") or len(high_risks) >= 2:
         business_health = "Critical"
@@ -194,6 +333,7 @@ def build_report(data: pd.DataFrame, *args, **kwargs) -> Dict[str, Any]:
             "financial_kpis": finance_insights.get("financial_kpis", {}),
             "profitability_observations": finance_insights.get("profitability_observations", []),
             "revenue_forecast": finance_insights.get("revenue_forecast", {}),
+            "business_health_score": business_health_score,
             "executive_financial_summary": finance_insights.get("executive_financial_summary", [])
         },
         "overall_risks": overall_risks,

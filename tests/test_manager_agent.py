@@ -143,6 +143,25 @@ def test_business_health_critical():
     assert report["business_health"] == "Critical"
 
 
+def test_business_health_score_is_dynamic():
+    healthy = build_report(_make_healthy_df())
+    moderate = build_report(_make_moderate_df())
+    critical = build_report(_make_critical_df())
+
+    healthy_score = int(healthy["financial_assessment"]["business_health_score"])
+    moderate_score = int(moderate["financial_assessment"]["business_health_score"])
+    critical_score = int(critical["financial_assessment"]["business_health_score"])
+
+    print(
+        f"Health scores: healthy={healthy_score}, moderate={moderate_score}, critical={critical_score}"
+    )
+
+    assert 0 <= critical_score <= 100
+    assert 0 <= moderate_score <= 100
+    assert 0 <= healthy_score <= 100
+    assert healthy_score > moderate_score > critical_score
+
+
 def test_invalid_inputs():
     """Verify that build_report raises ValueError on invalid/empty data."""
     # Test None input
@@ -224,6 +243,7 @@ if __name__ == "__main__":
         test_business_health_healthy,
         test_business_health_moderate,
         test_business_health_critical,
+        test_business_health_score_is_dynamic,
         test_invalid_inputs,
         test_top_priorities_generation,
         test_recommended_next_steps,

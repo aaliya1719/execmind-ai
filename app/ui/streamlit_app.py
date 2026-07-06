@@ -269,7 +269,12 @@ def _format_number(value: Any) -> str:
 
 
 def _health_score(report: Dict[str, Any]) -> int:
-    """Map business health into a simple executive score."""
+    """Read the generated business health score, with a legacy fallback."""
+    financial = report.get("financial_assessment", {})
+    score = financial.get("business_health_score")
+    if isinstance(score, (int, float)):
+        return max(0, min(100, int(round(float(score)))))
+
     health = str(report.get("business_health", "Healthy")).lower()
     if health == "critical":
         return 35
