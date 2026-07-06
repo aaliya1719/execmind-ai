@@ -109,8 +109,8 @@ def build_report(data: pd.DataFrame, *args, **kwargs) -> Dict[str, Any]:
     if promotions and len(priorities) < 5:
         first_promo = promotions[0]
         priorities.append(
-            f"Launch marketing campaign '{first_promo.get('campaign_name')}': "
-            f"Target {first_promo.get('target_segment')} with a {first_promo.get('discount_percentage')}% discount."
+            f"Launch marketing campaign ({first_promo.get('campaign_type')}): "
+            f"{first_promo.get('promotion_detail')}"
         )
         
     # Priority 4: Cross-sell implementation
