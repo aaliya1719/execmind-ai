@@ -7,3 +7,6 @@ openpyxl>=3.1.0
 # Agent and MCP dependencies
 google-adk>=0.1.0
 mcp>=1.0.0
+
+xlrd>=2.0.1
+openpyxl
