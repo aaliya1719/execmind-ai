@@ -1,6 +1,6 @@
 """Streamlit executive dashboard for ExecMind AI.
 
-Preserves the existing upload flow while presenting a professional, dark-theme
+Preserves the existing upload flow while presenting a polished SaaS-style
 business analysis experience that coordinates the specialist agents and the
 manager synthesis layer.
 """
@@ -38,45 +38,42 @@ st.markdown(
         background: linear-gradient(90deg, #5ee7ff, #8b5cf6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 3rem;
-        margin-bottom: 0.1rem;
+        font-size: 2.6rem;
+        margin-bottom: 0.15rem;
     }
     .tagline {
         color: #9aa7bb;
-        font-size: 1.15rem;
-        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        margin-bottom: 1rem;
         font-weight: 300;
     }
     .panel-card {
         background: rgba(12, 18, 31, 0.88);
         border: 1px solid rgba(255,255,255,0.08);
         border-radius: 16px;
-        padding: 1rem 1.1rem;
+        padding: 0.9rem 1rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    }
+    .highlight-box {
+        background: rgba(94, 231, 255, 0.12);
+        border: 1px solid rgba(94, 231, 255, 0.25);
+        border-radius: 14px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 0.8rem;
     }
     .section-header {
         color: #f8fafc;
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 600;
         margin-bottom: 0.4rem;
     }
-    .health-pill {
-        display: inline-block;
-        padding: 0.35rem 0.7rem;
-        border-radius: 999px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        background: rgba(94, 231, 255, 0.15);
-        color: #5ee7ff;
-        border: 1px solid rgba(94, 231, 255, 0.25);
-    }
     div[data-testid="stMetricValue"] {
-        font-size: 1.7rem !important;
+        font-size: 1.6rem !important;
         font-weight: 600 !important;
         color: #f8fafc !important;
     }
     div[data-testid="stMetricLabel"] {
-        font-size: 0.9rem !important;
+        font-size: 0.8rem !important;
         font-weight: 400 !important;
         color: #9aa7bb !important;
         text-transform: uppercase;
@@ -106,32 +103,49 @@ def _format_number(value: Any) -> str:
         return str(value)
 
 
+def _health_score(report: Dict[str, Any]) -> int:
+    """Map business health into a simple executive score."""
+    health = str(report.get("business_health", "Healthy")).lower()
+    if health == "critical":
+        return 35
+    if health == "moderate":
+        return 65
+    return 85
+
+
+def _render_workflow(status: str) -> None:
+    """Render the execution workflow as a structured progress section."""
+    steps = [
+        ("Sales", "Sales analysis complete" if status in {"running", "done"} else "Pending"),
+        ("Marketing", "Marketing analysis complete" if status in {"running", "done"} else "Pending"),
+        ("Finance", "Finance analysis complete" if status in {"running", "done"} else "Pending"),
+        ("Manager", "Executive report ready" if status == "done" else "Pending"),
+    ]
+    cols = st.columns(4)
+    for index, (label, state) in enumerate(steps):
+        with cols[index]:
+            st.markdown(
+                f"<div class='panel-card'><strong>{label}</strong><br/>{state}</div>",
+                unsafe_allow_html=True,
+            )
+
+
 def _render_report_sections(report: Dict[str, Any]) -> None:
-    """Render the executive business report into professional dashboard sections."""
+    """Render the executive business report into structured sections."""
     if not report:
         st.info("No report is available yet. Upload a dataset and run analysis.")
         return
 
-    st.markdown('<div class="section-header">Executive Summary</div>', unsafe_allow_html=True)
-    st.markdown(f"<div class='health-pill'>Business Health: {report.get('business_health', 'Healthy')}</div>", unsafe_allow_html=True)
-    for summary_item in report.get("executive_summary", []):
-        st.write(f"• {summary_item}")
+    st.markdown("### Executive Summary")
+    st.markdown(
+        f"<div class='highlight-box'><strong>Business Health:</strong> {report.get('business_health', 'Healthy')}<br/>{' '.join(report.get('executive_summary', [])[:2])}</div>",
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("---")
-    st.markdown('<div class="section-header">Business Health</div>', unsafe_allow_html=True)
-    hc1, hc2, hc3 = st.columns(3)
-    with hc1:
-        st.metric("Business Health", report.get("business_health", "Healthy"))
-    with hc2:
-        finance_assessment = report.get("financial_assessment", {})
-        revenue_health = finance_assessment.get("revenue_health", {})
-        st.metric("Revenue Status", revenue_health.get("status", "Stable"))
-    with hc3:
-        st.metric("Risk Count", len(report.get("overall_risks", [])))
-
-    st.markdown("---")
-    st.markdown('<div class="section-header">KPI Cards</div>', unsafe_allow_html=True)
     sales_insights = report.get("sales_insights", {})
+    marketing = report.get("marketing_recommendations", {})
+    financial = report.get("financial_assessment", {})
+
     k1, k2, k3, k4 = st.columns(4)
     with k1:
         st.metric("Total Sales", _format_currency(sales_insights.get("total_sales", 0)))
@@ -140,55 +154,54 @@ def _render_report_sections(report: Dict[str, Any]) -> None:
     with k3:
         st.metric("Average Order Value", _format_currency(sales_insights.get("average_order_value", 0)))
     with k4:
-        st.metric("Top Priority Count", len(report.get("top_priorities", [])))
+        st.metric("Business Health Score", f"{_health_score(report)} / 100")
 
-    st.markdown("---")
-    st.markdown('<div class="section-header">Sales Insights</div>', unsafe_allow_html=True)
-    if sales_insights.get("key_observations"):
+    st.markdown("### Execution Flow")
+    _render_workflow("done")
+
+    sales_tab, marketing_tab, finance_tab = st.tabs(["Sales", "Marketing", "Finance"])
+
+    with sales_tab:
+        st.markdown("**Sales Insights**")
         for observation in sales_insights.get("key_observations", []):
             st.write(f"• {observation}")
-    if sales_insights.get("top_products_by_revenue"):
-        top_products = pd.DataFrame(
-            {
-                "Product": list(sales_insights.get("top_products_by_revenue", {}).keys()),
-                "Revenue": list(sales_insights.get("top_products_by_revenue", {}).values()),
-            }
-        )
-        st.dataframe(top_products, use_container_width=True)
+        if sales_insights.get("top_products_by_revenue"):
+            product_df = pd.DataFrame(
+                {
+                    "Product": list(sales_insights.get("top_products_by_revenue", {}).keys()),
+                    "Revenue": list(sales_insights.get("top_products_by_revenue", {}).values()),
+                }
+            )
+            st.dataframe(product_df, use_container_width=True)
 
-    st.markdown("---")
-    st.markdown('<div class="section-header">Marketing Recommendations</div>', unsafe_allow_html=True)
-    marketing = report.get("marketing_recommendations", {})
-    for promotion in marketing.get("suggested_promotions", [])[:3]:
-        st.write(f"• {promotion.get('campaign_name', 'Campaign')} - {promotion.get('target_segment', 'segment')} | Discount: {promotion.get('discount_percentage', 0)}%")
-    for cross_sell in marketing.get("cross_sell_opportunities", [])[:3]:
-        st.write(f"• Bundle {cross_sell.get('product_1')} with {cross_sell.get('product_2')} for higher basket value")
+    with marketing_tab:
+        st.markdown("**Marketing Recommendations**")
+        for promotion in marketing.get("suggested_promotions", [])[:3]:
+            st.write(f"• {promotion.get('campaign_name', 'Campaign')} targeting {promotion.get('target_segment', 'segment')} with {promotion.get('discount_percentage', 0)}% discount")
+        for cross_sell in marketing.get("cross_sell_opportunities", [])[:3]:
+            st.write(f"• Bundle {cross_sell.get('product_1')} with {cross_sell.get('product_2')} to increase basket value")
 
-    st.markdown("---")
-    st.markdown('<div class="section-header">Financial Assessment</div>', unsafe_allow_html=True)
-    financial = report.get("financial_assessment", {})
-    revenue_health = financial.get("revenue_health", {})
-    st.write(f"• Revenue status: {revenue_health.get('status', 'Stable')}")
-    st.write(f"• Trend: {revenue_health.get('trend', 'Stable')}")
-    for observation in financial.get("profitability_observations", [])[:3]:
-        st.write(f"• {observation}")
+    with finance_tab:
+        st.markdown("**Financial Assessment**")
+        revenue_health = financial.get("revenue_health", {})
+        st.write(f"• Revenue status: {revenue_health.get('status', 'Stable')}")
+        st.write(f"• Trend: {revenue_health.get('trend', 'Stable')}")
+        for observation in financial.get("profitability_observations", [])[:3]:
+            st.write(f"• {observation}")
 
-    st.markdown("---")
-    st.markdown('<div class="section-header">Risks</div>', unsafe_allow_html=True)
+    st.markdown("### Risks")
     risks = report.get("overall_risks", [])
     if risks:
         risk_df = pd.DataFrame(risks)
         st.dataframe(risk_df[["risk_type", "severity", "source", "description"]], use_container_width=True)
     else:
-        st.write("No significant risks flagged.")
+        st.success("No significant risks flagged.")
 
-    st.markdown("---")
-    st.markdown('<div class="section-header">Top Priorities</div>', unsafe_allow_html=True)
-    for priority in report.get("top_priorities", []):
-        st.write(f"• {priority}")
+    st.markdown("### Top Priorities")
+    for index, priority in enumerate(report.get("top_priorities", []), start=1):
+        st.write(f"{index}. {priority}")
 
-    st.markdown("---")
-    st.markdown('<div class="section-header">Recommended Next Steps</div>', unsafe_allow_html=True)
+    st.markdown("### Recommended Next Steps")
     for step in report.get("recommended_next_steps", []):
         st.write(f"• {step}")
 
@@ -206,9 +219,9 @@ def _export_report_files(report: Dict[str, Any]) -> Dict[str, str]:
     }
 
 
-st.markdown('<div class="main-title">ExecMind AI</div>', unsafe_allow_html=True)
-st.markdown('<div class="tagline">Autonomous executive intelligence for modern businesses</div>', unsafe_allow_html=True)
-st.info("Upload sales data to begin the analysis workflow.")
+st.markdown('<div class="main-title">ExecMind AI – Executive Dashboard</div>', unsafe_allow_html=True)
+st.markdown('<div class="tagline">A clean view of your autonomous business operations</div>', unsafe_allow_html=True)
+st.info("Upload a sales dataset to generate a structured executive report.")
 
 uploaded_file = st.file_uploader(
     "Upload sales data",
@@ -220,18 +233,9 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     try:
         df = parse_uploaded_file(uploaded_file)
-        st.session_state["uploaded_df"] = df
         st.success(f"Successfully loaded '{uploaded_file.name}'!")
 
-        metric_col1, metric_col2, metric_col3 = st.columns(3)
-        with metric_col1:
-            st.metric("Total Records", f"{df.shape[0]:,}")
-        with metric_col2:
-            st.metric("Total Attributes", df.shape[1])
-        with metric_col3:
-            st.metric("Columns", ", ".join(list(df.columns)[:4]) + ("..." if len(df.columns) > 4 else ""))
-
-        with st.expander("View raw dataset", expanded=False):
+        with st.expander("View dataset", expanded=False):
             st.dataframe(df, use_container_width=True)
 
         st.markdown("---")
@@ -239,22 +243,21 @@ if uploaded_file is not None:
 
         if analyze_clicked:
             st.session_state["analysis_report"] = None
-            with st.status("Executing analysis workflow", expanded=True) as status:
-                st.write("Sales → analyzing performance, revenue trend, and order mix")
-                status.update(label="Sales analysis complete", state="complete")
-                st.write("Marketing → identifying promotion and cross-sell opportunities")
-                status.update(label="Marketing analysis complete", state="complete")
-                st.write("Finance → evaluating revenue health and financial risks")
-                status.update(label="Finance analysis complete", state="complete")
-                st.write("Manager → synthesizing the executive business report")
+            with st.status("Running executive analysis", expanded=True) as status:
+                st.write("Sales → evaluating performance and transaction patterns")
+                status.update(label="Sales complete", state="complete")
+                st.write("Marketing → reviewing promotions and cross-sell opportunities")
+                status.update(label="Marketing complete", state="complete")
+                st.write("Finance → assessing revenue health and risk signals")
+                status.update(label="Finance complete", state="complete")
+                st.write("Manager → synthesizing the executive report")
                 report = build_report(df)
                 st.session_state["analysis_report"] = report
-                status.update(label="Executive report generated", state="complete")
+                status.update(label="Manager complete", state="complete")
 
         if st.session_state.get("analysis_report"):
             report = st.session_state["analysis_report"]
             st.markdown("---")
-            st.subheader("Executive Business Report")
             _render_report_sections(report)
 
             export_paths = _export_report_files(report)
