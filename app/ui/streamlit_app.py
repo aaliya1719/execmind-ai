@@ -310,7 +310,7 @@ def _render_header() -> None:
     st.markdown(
         '''<div class="em-header">
             <h1 class="em-header-title">ExecMind AI</h1>
-            <p class="em-header-sub">An Autonomous Multi-Agent Business Strategy Assistant for Small Businesses</p>
+            <p class="em-header-sub">An Autonomous Multi-Agent Business Strategy & Decision Intelligence Platform</p>
         </div>''',
         unsafe_allow_html=True,
     )
