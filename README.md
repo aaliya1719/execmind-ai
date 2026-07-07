@@ -10,7 +10,7 @@ Transform raw sales data into actionable business strategies using an autonomous
 |----------|------|
 | 🌐 Streamlit App | https://execmind.streamlit.app/#exec-mind-ai |
 | 📂 GitHub Repository | https://github.com/aaliya1719/execmind-ai |
-| 🎥 Demo Video | https://youtu.be/your-video |
+| 🎥 Demo Video | https://youtu.be/ism_Ad8JDIo |
 
 
 ## Installation
