@@ -1,6 +1,6 @@
 # ExecMind AI
 
-### An Autonomous Multi-Agent Business Strategy Assistant for Small Businesses
+### An Autonomous Multi-Agent Business Strategy & Decision Intelligence Platform
 
 Transform raw sales data into actionable business strategies using an autonomous team of AI agents. ExecMind AI analyzes uploaded business datasets, generates executive insights, identifies risks, recommends marketing and financial strategies, and produces downloadable business reports—all through an intelligent multi-agent workflow.
 
@@ -12,6 +12,27 @@ Transform raw sales data into actionable business strategies using an autonomous
 | 📂 GitHub Repository | https://github.com/aaliya1719/execmind-ai |
 | 🎥 Demo Video | https://youtu.be/your-video |
 
+
+## Installation
+
+### Clone the repository
+
+```bash
+git clone https://github.com/<your-username>/execmind-ai.git
+cd execmind-ai
+```
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run the application
+
+```bash
+streamlit run app/ui/streamlit_app.py
+```
 
 ## Overview
 
@@ -139,26 +160,6 @@ ExecMind AI follows a hierarchical multi-agent architecture in which a central M
 - Uploaded datasets are processed only for analysis and report generation.
 - The repository does not contain hardcoded API keys or secrets.
 
-## Installation
-
-### Clone the repository
-
-```bash
-git clone https://github.com/<your-username>/execmind-ai.git
-cd execmind-ai
-```
-
-### Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Run the application
-
-```bash
-streamlit run app/ui/streamlit_app.py
-```
 
 ## Usage
 
